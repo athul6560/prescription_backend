@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Controller;
 
+import com.zeezaglobal.prescription.Entities.Doctor;
 import com.zeezaglobal.prescription.Entities.Role;
 import com.zeezaglobal.prescription.Entities.User;
 import com.zeezaglobal.prescription.Repository.RoleRepository;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.print.Doc;
 import java.util.Collections;
 
 @RestController
@@ -38,14 +40,19 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public String registerUser(@RequestParam String username, @RequestParam String password) {
+    public String registerUser(@RequestParam String username,
+                               @RequestParam String password,
+                               @RequestParam String email,
+                               @RequestParam String phone) {
         if (userRepository.findByUsername(username).isPresent()) {
             return "User already exists!";
         }
 
-        User user = new User();
+        Doctor user = new Doctor();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
+        user.setEmail(email);
+        user.setContactNumber(phone);
 
         userRepository.save(user);
         return "User registered successfully!";
@@ -53,6 +60,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public String loginUser(@RequestParam String username, @RequestParam String password) {
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password));
 

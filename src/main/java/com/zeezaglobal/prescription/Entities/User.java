@@ -13,13 +13,20 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String username;
+    @Column(nullable = false)
+
     private String password;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

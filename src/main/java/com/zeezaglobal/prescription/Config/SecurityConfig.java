@@ -24,11 +24,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
-
+    private final CustomAccessDeniedHandler accessDeniedHandler;
     // Injecting JwtRequestFilter through constructor
     @Autowired
-    public SecurityConfig(@Lazy JwtRequestFilter jwtRequestFilter) {
+    public SecurityConfig(@Lazy JwtRequestFilter jwtRequestFilter,CustomAccessDeniedHandler accessDeniedHandler) {
         this.jwtRequestFilter = jwtRequestFilter;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -61,9 +62,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/login").permitAll()
+
                         .requestMatchers("/dashboard").authenticated()  // Secure /dashboard
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
