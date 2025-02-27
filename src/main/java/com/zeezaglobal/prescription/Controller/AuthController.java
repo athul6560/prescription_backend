@@ -1,5 +1,7 @@
 package com.zeezaglobal.prescription.Controller;
 
+import com.zeezaglobal.prescription.DTO.UserRequest;
+import com.zeezaglobal.prescription.Entities.Doctor;
 import com.zeezaglobal.prescription.Entities.Role;
 import com.zeezaglobal.prescription.Entities.User;
 import com.zeezaglobal.prescription.Repository.RoleRepository;
@@ -11,11 +13,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.print.Doc;
 import java.util.Collections;
 
 @RestController
@@ -38,25 +38,29 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public String registerUser(@RequestParam String username, @RequestParam String password) {
-        if (userRepository.findByUsername(username).isPresent()) {
+    public String registerUser(@RequestBody UserRequest user
+                              ) {
+        if (userRepository.findByUsername(user.getEmail()).isPresent()) {
             return "User already exists!";
         }
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
+        Doctor doctor = new Doctor();
+        doctor.setUsername(user.getUsername());
+        doctor.setPassword(passwordEncoder.encode(user.getPassword()));
+        doctor.setEmail(user.getEmail());
 
-        userRepository.save(user);
+
+        userRepository.save(doctor);
         return "User registered successfully!";
     }
 
     @PostMapping("/login")
-    public String loginUser(@RequestParam String username, @RequestParam String password) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
+    public String loginUser(@RequestBody User user) {
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
         return jwtUtil.generateToken(userDetails.getUsername());
     }
 }
