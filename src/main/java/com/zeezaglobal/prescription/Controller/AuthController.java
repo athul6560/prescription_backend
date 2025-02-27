@@ -55,12 +55,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String loginUser(@RequestParam String username, @RequestParam String password) {
+    public String loginUser(@RequestBody User user) {
 
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
+                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
         return jwtUtil.generateToken(userDetails.getUsername());
     }
 }
