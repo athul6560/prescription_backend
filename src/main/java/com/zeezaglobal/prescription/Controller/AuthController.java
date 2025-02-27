@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Controller;
 
+import com.zeezaglobal.prescription.DTO.LoginDTO;
 import com.zeezaglobal.prescription.DTO.UserRequest;
 import com.zeezaglobal.prescription.Entities.Doctor;
 import com.zeezaglobal.prescription.Entities.Role;
@@ -40,9 +41,10 @@ public class AuthController {
     @PostMapping("/register")
     public String registerUser(@RequestBody UserRequest user
                               ) {
-        if (userRepository.findByUsername(user.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             return "User already exists!";
         }
+
 
         Doctor doctor = new Doctor();
         doctor.setUsername(user.getUsername());
@@ -55,12 +57,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String loginUser(@RequestBody User user) {
+    public String loginUser(@RequestBody LoginDTO user) {
 
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         return jwtUtil.generateToken(userDetails.getUsername());
     }
 }
