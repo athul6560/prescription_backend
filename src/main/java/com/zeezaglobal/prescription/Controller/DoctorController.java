@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/doctors")
+@RequestMapping("/doctor")
 public class DoctorController {
     @Autowired
     private DoctorService doctorService;
@@ -34,6 +34,7 @@ public class DoctorController {
             doctor.setLastName(updatedDoctor.getLastName());
             doctor.setHospitalName(updatedDoctor.getHospitalName());
             doctor.setLicenseNumber(updatedDoctor.getLicenseNumber());
+            doctor.setContactNumber(updatedDoctor.getContactNumber());
 
             doctor.setSpecialization(updatedDoctor.getSpecialization()); // Example field
             // Add more fields as needed

@@ -18,7 +18,5 @@ public class Doctor extends User {
     private String specialization;
     private String licenseNumber;
     private String hospitalName;
-
-    @Column(nullable = false, unique = true)
     private String contactNumber;
 }

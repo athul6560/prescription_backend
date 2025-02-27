@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Controller;
 
+import com.zeezaglobal.prescription.DTO.UserRequest;
 import com.zeezaglobal.prescription.Entities.Doctor;
 import com.zeezaglobal.prescription.Entities.Role;
 import com.zeezaglobal.prescription.Entities.User;
@@ -12,10 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.print.Doc;
 import java.util.Collections;
@@ -40,21 +38,19 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public String registerUser(@RequestParam String username,
-                               @RequestParam String password,
-                               @RequestParam String email,
-                               @RequestParam String phone) {
-        if (userRepository.findByUsername(username).isPresent()) {
+    public String registerUser(@RequestBody UserRequest user
+                              ) {
+        if (userRepository.findByUsername(user.getEmail()).isPresent()) {
             return "User already exists!";
         }
 
-        Doctor user = new Doctor();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setEmail(email);
-        user.setContactNumber(phone);
+        Doctor doctor = new Doctor();
+        doctor.setUsername(user.getUsername());
+        doctor.setPassword(passwordEncoder.encode(user.getPassword()));
+        doctor.setEmail(user.getEmail());
 
-        userRepository.save(user);
+
+        userRepository.save(doctor);
         return "User registered successfully!";
     }
 
