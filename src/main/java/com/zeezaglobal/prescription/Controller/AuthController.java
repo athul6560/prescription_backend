@@ -9,6 +9,7 @@ import com.zeezaglobal.prescription.Repository.RoleRepository;
 import com.zeezaglobal.prescription.Repository.UserRepository;
 import com.zeezaglobal.prescription.Utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,21 +43,27 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public String registerUser(@RequestBody UserRequest user
-                              ) {
+    public ResponseEntity<Map<String, String>> registerUser(@RequestBody UserRequest user) {
+        Map<String, String> response = new HashMap<>();
+
+        // Check if the user already exists
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return "User already exists!";
+            response.put("message", "User already exists!");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-
+        // Create a new doctor and set values
         Doctor doctor = new Doctor();
         doctor.setUsername(user.getUsername());
         doctor.setPassword(passwordEncoder.encode(user.getPassword()));
         doctor.setEmail(user.getEmail());
 
-
+        // Save the new doctor
         userRepository.save(doctor);
-        return "User registered successfully!";
+
+        // Success response
+        response.put("message", "User registered successfully!");
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
