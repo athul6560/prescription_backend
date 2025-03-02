@@ -12,9 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +24,7 @@ import javax.print.Doc;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -47,7 +50,7 @@ public class AuthController {
         Map<String, String> response = new HashMap<>();
 
         // Check if the user already exists
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             response.put("message", "User already exists!");
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
@@ -56,7 +59,7 @@ public class AuthController {
         Doctor doctor = new Doctor();
         doctor.setUsername(user.getUsername());
         doctor.setPassword(passwordEncoder.encode(user.getPassword()));
-        doctor.setEmail(user.getEmail());
+
 
         // Save the new doctor
         userRepository.save(doctor);
@@ -67,16 +70,42 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> loginUser(@RequestBody LoginDTO user) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+    public ResponseEntity<Map<String, Object>> loginUser(@RequestBody LoginDTO user) {
+        try {
+            if (user.getUsername() == null || user.getPassword() == null) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Email or password cannot be null"));
+            }
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtUtil.generateToken(userDetails.getUsername());
+            // Authenticate the user
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
 
-        Map<String, String> response = new HashMap<>();
-        response.put("token", token);
+            // Load user details
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+            String token = jwtUtil.generateToken(userDetails.getUsername());
 
-        return ResponseEntity.ok(response);
+            // Fetch user entity from DB
+            User loggedInUser = userRepository.findByUsername(user.getUsername()).orElseThrow(() ->
+                    new UsernameNotFoundException("User not found"));
+
+            // Prepare response with token and user details
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("user", Map.of(
+                    "id", loggedInUser.getId(),
+                    "username", loggedInUser.getUsername(),
+
+                    "roles", loggedInUser.getRoles().stream().map(Role::getName).collect(Collectors.toList())
+            ));
+
+            return ResponseEntity.ok(response);
+
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("message", "Invalid email or password"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("message", "An error occurred while processing your request"));
+        }
     }
 }
