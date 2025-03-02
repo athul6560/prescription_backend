@@ -62,7 +62,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/login").permitAll()
-
+                       // .requestMatchers("/doctor/update").permitAll()
                         .requestMatchers("/dashboard").authenticated()  // Secure /dashboard
                         .anyRequest().authenticated()
                 )
