@@ -1,9 +1,7 @@
 package com.zeezaglobal.prescription.Controller;
 
-import com.zeezaglobal.prescription.DTO.DoctorId;
 import com.zeezaglobal.prescription.DTO.UpdateDoctorDTO;
 import com.zeezaglobal.prescription.Entities.Doctor;
-import com.zeezaglobal.prescription.Entities.User;
 import com.zeezaglobal.prescription.Repository.DoctorRepository;
 import com.zeezaglobal.prescription.Repository.UserRepository;
 import com.zeezaglobal.prescription.Service.DoctorService;
@@ -28,12 +26,13 @@ public class DoctorController {
     @Autowired
     private DoctorRepository doctorRepository;
 
-    @GetMapping("/getdata")
-    public ResponseEntity<Doctor> getDoctorDetails(@RequestBody DoctorId doctorId) {
-        return doctorRepository.findById(doctorId.getId())
+    @GetMapping("/getdata/{doctorId}")
+    public ResponseEntity<Doctor> getDoctorDetails(@PathVariable Long doctorId) {
+        return doctorRepository.findById(doctorId)
                 .map(ResponseEntity::ok) // If doctor exists, return 200 OK with the doctor data
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)); // If not found, return 404
     }
+
     @PostMapping("/update")
     public ResponseEntity<Doctor> updateDoctor(@RequestBody UpdateDoctorDTO updatedDoctor) {
         Logger logger = LoggerFactory.getLogger(this.getClass());
