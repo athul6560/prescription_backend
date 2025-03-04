@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -13,18 +14,20 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Drug {
+public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private int serialNumber;
-    private String type;
-    private String name;
-    private String dose;
-    private String frequency;
-    private String duration;
-    private String remarks;
 
-    @ManyToMany(mappedBy = "drugs")
+    private String firstName;
+    private String lastName;
+    private String dateOfBirth;
+    private String gender;
+    private String contactNumber;
+    private String email;
+    private String address;
+    private String medicalHistory;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Prescription> prescriptions;
 }
