@@ -18,19 +18,36 @@ public class PatientsController {
     @Autowired
     private PatientService patientService;
 
-    @PostMapping("/add")
-    public ResponseEntity<Patient> addPatient(@RequestBody Patient patient) {
-        return ResponseEntity.ok(patientService.savePatient(patient));
-    }
-
     @GetMapping
     public ResponseEntity<List<Patient>> getAllPatients() {
         return ResponseEntity.ok(patientService.getAllPatients());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Patient>> getPatientById(@PathVariable Long id) {
-        return ResponseEntity.ok(patientService.getPatientById(id));
+    public ResponseEntity<Patient> getPatientById(@PathVariable Long id) {
+        Optional<Patient> patient = patientService.getPatientById(id);
+        return patient.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/doctor/{doctorId}")
+    public ResponseEntity<List<Patient>> getPatientsByDoctorId(@PathVariable Long doctorId) {
+        return ResponseEntity.ok(patientService.getPatientsByDoctorId(doctorId));
+    }
+
+    @PostMapping
+    public ResponseEntity<Patient> createPatient(@RequestBody Patient patient) {
+        return ResponseEntity.ok(patientService.savePatient(patient));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Patient> updatePatient(@PathVariable Long id, @RequestBody Patient updatedPatient) {
+        Optional<Patient> existingPatient = patientService.getPatientById(id);
+        if (existingPatient.isPresent()) {
+            updatedPatient.setId(id);
+            return ResponseEntity.ok(patientService.savePatient(updatedPatient));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")

@@ -16,16 +16,20 @@ public class PatientService {
     @Autowired
     private PatientRepository patientRepository;
 
-    public Patient savePatient(Patient patient) {
-        return patientRepository.save(patient);
-    }
-
     public List<Patient> getAllPatients() {
         return patientRepository.findAll();
     }
 
     public Optional<Patient> getPatientById(Long id) {
         return patientRepository.findById(id);
+    }
+
+    public List<Patient> getPatientsByDoctorId(Long doctorId) {
+        return patientRepository.findByDoctorId(doctorId);
+    }
+
+    public Patient savePatient(Patient patient) {
+        return patientRepository.save(patient);
     }
 
     public void deletePatient(Long id) {
