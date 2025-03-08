@@ -5,6 +5,8 @@ import com.zeezaglobal.prescription.Entities.Patient;
 import com.zeezaglobal.prescription.Repository.DrugRepository;
 import com.zeezaglobal.prescription.Repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,9 +25,8 @@ public class PatientService {
     public Optional<Patient> getPatientById(Long id) {
         return patientRepository.findById(id);
     }
-
-    public List<Patient> getPatientsByDoctorId(Long doctorId) {
-        return patientRepository.findByDoctorId(doctorId);
+    public Page<Patient> getPatientsByDoctorId(Long doctorId, Pageable pageable) {
+        return patientRepository.findByDoctorId(doctorId, pageable);
     }
 
     public Patient savePatient(Patient patient) {

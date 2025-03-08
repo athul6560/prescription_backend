@@ -5,6 +5,8 @@ import com.zeezaglobal.prescription.Entities.Patient;
 import com.zeezaglobal.prescription.Service.DrugService;
 import com.zeezaglobal.prescription.Service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,8 +32,10 @@ public class PatientsController {
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public ResponseEntity<List<Patient>> getPatientsByDoctorId(@PathVariable Long doctorId) {
-        return ResponseEntity.ok(patientService.getPatientsByDoctorId(doctorId));
+    public ResponseEntity<Page<Patient>> getPatientsByDoctorId(
+            @PathVariable Long doctorId,
+            Pageable pageable) {
+        return ResponseEntity.ok(patientService.getPatientsByDoctorId(doctorId, pageable));
     }
 
     @PostMapping

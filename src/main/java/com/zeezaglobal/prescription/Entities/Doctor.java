@@ -1,6 +1,7 @@
 package com.zeezaglobal.prescription.Entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,7 +25,8 @@ public class Doctor extends User {
     private String licenseNumber;
     private String hospitalName;
     private String contactNumber;
-    @JsonBackReference
+
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Patient> patients;
 }
