@@ -12,4 +12,5 @@ import java.util.List;
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long> {
     Page<Patient> findByDoctorId(Long doctorId, Pageable pageable);
+    List<Patient> findByFirstNameContainingOrLastNameContainingOrContactNumberContaining(String firstName, String lastName, String contactNumber);
 }

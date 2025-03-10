@@ -7,6 +7,7 @@ import com.zeezaglobal.prescription.Service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,20 @@ public class PatientsController {
     public ResponseEntity<List<Patient>> getAllPatients() {
         return ResponseEntity.ok(patientService.getAllPatients());
     }
+    @GetMapping("/search")
+    public ResponseEntity<?> searchPatients(
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String contactNumber) {
 
+        List<Patient> patients = patientService.searchPatients(firstName, lastName, contactNumber);
+
+        if (patients.isEmpty()) {
+            return new ResponseEntity<>("No patients found for the given search criteria.", HttpStatus.NOT_FOUND);
+        } else {
+            return new ResponseEntity<>(patients, HttpStatus.OK);
+        }
+    }
     @GetMapping("/{id}")
     public ResponseEntity<Patient> getPatientById(@PathVariable Long id) {
         Optional<Patient> patient = patientService.getPatientById(id);
