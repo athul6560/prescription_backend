@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Controller;
 
+import com.zeezaglobal.prescription.DTO.DoctorDTO;
 import com.zeezaglobal.prescription.DTO.UpdateDoctorDTO;
 import com.zeezaglobal.prescription.Entities.Doctor;
 import com.zeezaglobal.prescription.Repository.DoctorRepository;
@@ -27,12 +28,20 @@ public class DoctorController {
     private DoctorRepository doctorRepository;
 
     @GetMapping("/getdata/{doctorId}")
-    public ResponseEntity<Doctor> getDoctorDetails(@PathVariable Long doctorId) {
+    public ResponseEntity<DoctorDTO> getDoctorDetails(@PathVariable Long doctorId) {
         return doctorRepository.findById(doctorId)
-                .map(ResponseEntity::ok) // If doctor exists, return 200 OK with the doctor data
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)); // If not found, return 404
+                .map(doctor -> ResponseEntity.ok(mapToDTO(doctor))) // Map entity to DTO
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)); // Return 404 if not found
     }
-
+    private DoctorDTO mapToDTO(Doctor doctor) {
+        return new DoctorDTO(doctor.getId(),
+                doctor.getFirstName(),
+                doctor.getLastName(),
+                doctor.getSpecialization(),
+                doctor.getLicenseNumber(),
+                doctor.getHospitalName(),
+                doctor.getContactNumber());
+    }
     @PostMapping("/update")
     public ResponseEntity<Doctor> updateDoctor(@RequestBody UpdateDoctorDTO updatedDoctor) {
         Logger logger = LoggerFactory.getLogger(this.getClass());
