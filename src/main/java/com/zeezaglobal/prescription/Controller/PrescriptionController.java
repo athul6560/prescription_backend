@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -16,9 +17,15 @@ public class PrescriptionController {
     @Autowired
     private PrescriptionService prescriptionService;
 
-    @PostMapping("/add")
-    public ResponseEntity<Prescription> createPrescription(@RequestBody Prescription prescription) {
-        return ResponseEntity.ok(prescriptionService.savePrescription(prescription));
+    @PostMapping("/create")
+    public ResponseEntity<Prescription> createPrescription(@RequestBody Map<String, Object> payload) {
+        Long patientId = ((Number) payload.get("patientId")).longValue();
+        List<Integer> drugIdsInt = (List<Integer>) payload.get("drugIds");
+        List<Long> drugIds = drugIdsInt.stream().map(Integer::longValue).toList();
+        String remarks = (String) payload.get("remarks");
+
+        Prescription prescription = prescriptionService.createPrescription(patientId, drugIds, remarks);
+        return ResponseEntity.ok(prescription);
     }
 
     @GetMapping
