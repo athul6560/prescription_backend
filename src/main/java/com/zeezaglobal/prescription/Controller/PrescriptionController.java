@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Controller;
 
+import com.zeezaglobal.prescription.DTO.PrescriptionDTO;
 import com.zeezaglobal.prescription.Entities.Prescription;
 import com.zeezaglobal.prescription.Service.PrescriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +19,13 @@ public class PrescriptionController {
     private PrescriptionService prescriptionService;
 
     @PostMapping("/create")
-    public ResponseEntity<Prescription> createPrescription(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<PrescriptionDTO> createPrescription(@RequestBody Map<String, Object> payload) {
         Long patientId = ((Number) payload.get("patientId")).longValue();
         List<Integer> drugIdsInt = (List<Integer>) payload.get("drugIds");
         List<Long> drugIds = drugIdsInt.stream().map(Integer::longValue).toList();
         String remarks = (String) payload.get("remarks");
 
-        Prescription prescription = prescriptionService.createPrescription(patientId, drugIds, remarks);
+        PrescriptionDTO prescription = prescriptionService.createPrescription(patientId, drugIds, remarks);
         return ResponseEntity.ok(prescription);
     }
 

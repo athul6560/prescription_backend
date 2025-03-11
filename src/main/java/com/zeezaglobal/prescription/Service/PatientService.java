@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Service;
 
+import com.zeezaglobal.prescription.DTO.PatientDTO;
 import com.zeezaglobal.prescription.Entities.Drug;
 import com.zeezaglobal.prescription.Entities.Patient;
 import com.zeezaglobal.prescription.Repository.DrugRepository;
@@ -30,8 +31,25 @@ public class PatientService {
         return patientRepository.findById(id);
     }
 
-    public Page<Patient> getPatientsByDoctorId(Long doctorId, Pageable pageable) {
-        return patientRepository.findByDoctorId(doctorId, pageable);
+    public Page<PatientDTO> getPatientsByDoctorId(Long doctorId, Pageable pageable) {
+        Page<Patient> patients = patientRepository.findByDoctorId(doctorId, pageable);
+
+        return patients.map(patient ->
+                new PatientDTO(
+                        patient.getId(),
+                        patient.getNumberOfVisit(),
+                        patient.getFirstName(),
+                        patient.getLastName(),
+                        patient.getDateOfBirth(),
+                        patient.getGender(),
+                        patient.getContactNumber(),
+                        patient.getEmail(),
+                        patient.getAddress(),
+                        patient.getMedicalHistory(),
+                        patient.getDoctor().getId()
+                )
+        );
+
     }
 
     public Patient savePatient(Patient patient) {

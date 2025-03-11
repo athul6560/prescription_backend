@@ -33,10 +33,8 @@ public class Patient {
 
     @ManyToOne
     @JoinColumn(name = "doctor_id", nullable = false)
-    @JsonManagedReference
     private Doctor doctor;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference("patient-prescription")
     private List<Prescription> prescriptions;
 }

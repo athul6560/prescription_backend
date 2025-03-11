@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Controller;
 
+import com.zeezaglobal.prescription.DTO.PatientDTO;
 import com.zeezaglobal.prescription.Entities.Drug;
 import com.zeezaglobal.prescription.Entities.Patient;
 import com.zeezaglobal.prescription.Service.DrugService;
@@ -46,7 +47,7 @@ public class PatientsController {
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public ResponseEntity<Page<Patient>> getPatientsByDoctorId(
+    public ResponseEntity<Page<PatientDTO>> getPatientsByDoctorId(
             @PathVariable Long doctorId,
             Pageable pageable) {
         return ResponseEntity.ok(patientService.getPatientsByDoctorId(doctorId, pageable));

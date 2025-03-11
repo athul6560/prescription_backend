@@ -26,7 +26,6 @@ public class Prescription {
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
-    @JsonManagedReference("patient-prescription")
     private Patient patient;
 
     @ManyToMany
@@ -35,6 +34,5 @@ public class Prescription {
             joinColumns = @JoinColumn(name = "prescription_id"),
             inverseJoinColumns = @JoinColumn(name = "drug_id")
     )
-    @JsonManagedReference("prescription-drug")
     private List<Drug> drugs;
 }

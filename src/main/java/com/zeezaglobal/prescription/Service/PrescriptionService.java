@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Service;
 
+import com.zeezaglobal.prescription.DTO.PrescriptionDTO;
 import com.zeezaglobal.prescription.Entities.Drug;
 import com.zeezaglobal.prescription.Entities.Patient;
 import com.zeezaglobal.prescription.Entities.Prescription;
@@ -26,7 +27,7 @@ public class PrescriptionService {
     private DrugRepository drugRepository;
 
     @Transactional
-    public Prescription createPrescription(Long patientId, List<Long> drugIds, String remarks) {
+    public PrescriptionDTO createPrescription(Long patientId, List<Long> drugIds, String remarks) {
         Optional<Patient> patientOpt = patientRepository.findById(patientId);
         if (patientOpt.isEmpty()) {
             throw new RuntimeException("Patient not found");
@@ -42,8 +43,17 @@ public class PrescriptionService {
         prescription.setDrugs(drugs);
         prescription.setPrescribedDate(java.time.LocalDate.now());
         prescription.setRemarks(remarks);
+        Prescription createdPrescription = prescriptionRepository.save(prescription);
 
-        return prescriptionRepository.save(prescription);
+        // Convert to DTO
+        return new PrescriptionDTO(
+                createdPrescription.getId(),
+                createdPrescription.getPrescribedDate(),
+                createdPrescription.getRemarks(),
+                createdPrescription.getPatient().getId()
+
+        );
+
     }
 
 

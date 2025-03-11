@@ -28,6 +28,5 @@ public class Doctor extends User {
     private String contactNumber;
 
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<Patient> patients;
 }
