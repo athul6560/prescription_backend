@@ -27,6 +27,5 @@ public class Drug {
     private String remarks;
 
     @ManyToMany(mappedBy = "drugs")
-    @JsonBackReference
     private List<Prescription> prescriptions;
 }
