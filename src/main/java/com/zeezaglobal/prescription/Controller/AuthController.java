@@ -1,5 +1,6 @@
 package com.zeezaglobal.prescription.Controller;
 
+import com.stripe.exception.StripeException;
 import com.zeezaglobal.prescription.DTO.LoginDTO;
 import com.zeezaglobal.prescription.DTO.UserRequest;
 import com.zeezaglobal.prescription.Entities.Doctor;
@@ -7,6 +8,7 @@ import com.zeezaglobal.prescription.Entities.Role;
 import com.zeezaglobal.prescription.Entities.User;
 import com.zeezaglobal.prescription.Repository.RoleRepository;
 import com.zeezaglobal.prescription.Repository.UserRepository;
+import com.zeezaglobal.prescription.Service.StripeService;
 import com.zeezaglobal.prescription.Utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,10 +45,13 @@ public class AuthController {
     private UserDetailsService userDetailsService;
 
     @Autowired
+    private StripeService stripeService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> registerUser(@RequestBody UserRequest user) {
+    public ResponseEntity<Map<String, String>> registerUser(@RequestBody UserRequest user) throws StripeException {
         Map<String, String> response = new HashMap<>();
 
         // Check if the user already exists
@@ -58,6 +63,14 @@ public class AuthController {
         // Create a new doctor and set values
         Doctor doctor = new Doctor();
         doctor.setUsername(user.getUsername());
+        try {
+            // Attempt to create a Stripe customer
+            String customerId = stripeService.createCustomer(user.getUsername());
+            doctor.setStripeUsername(customerId); // Save Stripe customer ID if needed
+        } catch (StripeException e) {
+            response.put("message", "Registration not complete. Please contact support.");
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         doctor.setPassword(passwordEncoder.encode(user.getPassword()));
 
 

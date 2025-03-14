@@ -26,6 +26,7 @@ public class Doctor extends User {
     private String licenseNumber;
     private String hospitalName;
     private String contactNumber;
+    private String stripeUsername;
 
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Patient> patients;
