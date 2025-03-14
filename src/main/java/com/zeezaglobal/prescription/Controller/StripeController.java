@@ -19,10 +19,6 @@ public class StripeController {
     @Autowired
     private StripeService stripeService;
 
-    @PostMapping("/customer")
-    public String createCustomer(@RequestBody Map<String, String> payload) throws StripeException {
-        return stripeService.createCustomer(payload.get("email"));
-    }
     @PostMapping("/attach-payment-method")
     public void attachPaymentMethod(@RequestBody Map<String, String> payload) throws StripeException {
         stripeService.attachPaymentMethod(payload);

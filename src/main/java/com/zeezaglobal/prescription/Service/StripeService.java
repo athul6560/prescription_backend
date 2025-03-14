@@ -34,6 +34,7 @@ public class StripeService {
         Stripe.apiKey = stripeSecretKey;
         CustomerCreateParams params = CustomerCreateParams.builder()
                 .setEmail(email)
+
                 .build();
         Customer customer = Customer.create(params);
         return customer.getId();
