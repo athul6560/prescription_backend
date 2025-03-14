@@ -2,13 +2,9 @@ package com.zeezaglobal.prescription.Service;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.PaymentMethod;
-import com.stripe.model.Subscription;
-import com.stripe.param.CustomerCreateParams;
-import com.stripe.param.CustomerUpdateParams;
-import com.stripe.param.PaymentMethodAttachParams;
-import com.stripe.param.SubscriptionCreateParams;
+import com.stripe.model.*;
+import com.stripe.net.RequestOptions;
+import com.stripe.param.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -76,15 +72,35 @@ public class StripeService {
         Stripe.apiKey = stripeSecretKey;
         String priceId = isMonthly ? monthlyPriceId : yearlyPriceId;
 
+        // Fetch price details from Stripe
+        Price price = Price.retrieve(priceId);
+        Long amount = price.getUnitAmount(); // Amount in cents
+        String currency = price.getCurrency();
+
+        // Create PaymentIntent
         Map<String, Object> params = new HashMap<>();
         params.put("customer", customerId);
+        params.put("amount", amount);
+        params.put("currency", currency);
         params.put("automatic_payment_methods", Map.of("enabled", true));
-        params.put("items", List.of(Map.of("price", priceId)));
 
-        com.stripe.model.PaymentIntent paymentIntent = com.stripe.model.PaymentIntent.create(params);
+        PaymentIntent paymentIntent = PaymentIntent.create(params);
+
+        // Generate an ephemeral key for the existing customer
+        EphemeralKeyCreateParams ephemeralKeyParams =
+                EphemeralKeyCreateParams.builder()
+                        .setCustomer(customerId)
+                        .setStripeVersion("2023-10-16") // Required for ephemeral keys
+                        .build();
+
+        EphemeralKey ephemeralKey = EphemeralKey.create(ephemeralKeyParams);
+
+        // Prepare response
         Map<String, String> responseData = new HashMap<>();
         responseData.put("clientSecret", paymentIntent.getClientSecret());
         responseData.put("paymentIntentId", paymentIntent.getId());
+        responseData.put("ephemeralKey", ephemeralKey.getSecret());
+
         return responseData;
     }
 }
