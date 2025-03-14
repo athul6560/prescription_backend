@@ -76,28 +76,16 @@ public class StripeService {
         SubscriptionCreateParams params = SubscriptionCreateParams.builder()
                 .setCustomer(customerId)
                 .addItem(SubscriptionCreateParams.Item.builder().setPrice(priceId).build())
-                .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.DEFAULT_INCOMPLETE) // Ensures user completes payment
+                .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.ALLOW_INCOMPLETE)
+                .addExpand("latest_invoice.payment_intent")
                 .build();
 
         // Create the subscription
         Subscription subscription = Subscription.create(params);
 
-        // Expand `latest_invoice.payment_intent` by retrieving the subscription with expansions
-        RequestOptions requestOptions = RequestOptions.builder().build();
-        Subscription retrievedSubscription = Subscription.retrieve(subscription.getId(),
-                Map.of("expand", List.of("latest_invoice.payment_intent")), requestOptions);
-
         // Get the PaymentIntent associated with the subscription
-        String clientSecret = retrievedSubscription.getLatestInvoiceObject().getPaymentIntentObject().getClientSecret();
-
-        // **Create SetupIntent for saving payment method**
-        SetupIntentCreateParams setupIntentParams = SetupIntentCreateParams.builder()
-                .setCustomer(customerId) // Set customer ID
-                .setPaymentMethod(retrievedSubscription.getLatestInvoiceObject().getPaymentIntentObject().getPaymentMethod()) // Use the payment method from the payment intent
-                .build();
-
-        // Create the SetupIntent
-        SetupIntent setupIntent = SetupIntent.create(setupIntentParams);
+        PaymentIntent paymentIntent = subscription.getLatestInvoiceObject().getPaymentIntentObject();
+        String paymentIntentClientSecret = paymentIntent.getClientSecret();
 
         // Generate an ephemeral key for the customer
         EphemeralKeyCreateParams ephemeralKeyParams = EphemeralKeyCreateParams.builder()
@@ -109,7 +97,7 @@ public class StripeService {
         // Prepare response
         Map<String, String> responseData = new HashMap<>();
         responseData.put("subscriptionId", subscription.getId());
-        responseData.put("clientSecret", setupIntent.getClientSecret());  // Use the SetupIntent client secret here
+        responseData.put("clientSecret", paymentIntentClientSecret); // Use the PaymentIntent client secret
         responseData.put("ephemeralKey", ephemeralKey.getSecret());
 
         return responseData;
