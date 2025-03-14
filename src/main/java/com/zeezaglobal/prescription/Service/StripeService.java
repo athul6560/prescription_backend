@@ -72,33 +72,35 @@ public class StripeService {
         Stripe.apiKey = stripeSecretKey;
         String priceId = isMonthly ? monthlyPriceId : yearlyPriceId;
 
-        // Fetch price details from Stripe
-        Price price = Price.retrieve(priceId);
-        Long amount = price.getUnitAmount(); // Amount in cents
-        String currency = price.getCurrency();
+        // Create subscription
+        SubscriptionCreateParams params = SubscriptionCreateParams.builder()
+                .setCustomer(customerId)
+                .addItem(SubscriptionCreateParams.Item.builder().setPrice(priceId).build())
+                .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.DEFAULT_INCOMPLETE) // Ensures user completes payment
+                .build();
 
-        // Create PaymentIntent
-        Map<String, Object> params = new HashMap<>();
-        params.put("customer", customerId);
-        params.put("amount", amount);
-        params.put("currency", currency);
-        params.put("automatic_payment_methods", Map.of("enabled", true));
+        // Create the subscription
+        Subscription subscription = Subscription.create(params);
 
-        PaymentIntent paymentIntent = PaymentIntent.create(params);
+        // Expand `latest_invoice.payment_intent` by retrieving the subscription with expansions
+        RequestOptions requestOptions = RequestOptions.builder().build();
+        Subscription retrievedSubscription = Subscription.retrieve(subscription.getId(),
+                Map.of("expand", List.of("latest_invoice.payment_intent")), requestOptions);
 
-        // Generate an ephemeral key for the existing customer
-        EphemeralKeyCreateParams ephemeralKeyParams =
-                EphemeralKeyCreateParams.builder()
-                        .setCustomer(customerId)
-                        .setStripeVersion("2023-10-16") // Required for ephemeral keys
-                        .build();
+        // Get the PaymentIntent
+        String clientSecret = retrievedSubscription.getLatestInvoiceObject().getPaymentIntentObject().getClientSecret();
 
+        // Generate an ephemeral key for the customer
+        EphemeralKeyCreateParams ephemeralKeyParams = EphemeralKeyCreateParams.builder()
+                .setCustomer(customerId)
+                .setStripeVersion("2023-10-16") // Required for ephemeral keys
+                .build();
         EphemeralKey ephemeralKey = EphemeralKey.create(ephemeralKeyParams);
 
         // Prepare response
         Map<String, String> responseData = new HashMap<>();
-        responseData.put("clientSecret", paymentIntent.getClientSecret());
-        responseData.put("paymentIntentId", paymentIntent.getId());
+        responseData.put("subscriptionId", subscription.getId());
+        responseData.put("clientSecret", clientSecret);
         responseData.put("ephemeralKey", ephemeralKey.getSecret());
 
         return responseData;
