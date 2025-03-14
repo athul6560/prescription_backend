@@ -68,7 +68,7 @@ public class StripeService {
         return subscription.getId();
     }
 
-    public Map<String, String> createPaymentIntent(String customerId, boolean isMonthly) throws StripeException {
+    public Map<String, String> createSubscriptionIntent(String customerId, boolean isMonthly) throws StripeException {
         Stripe.apiKey = stripeSecretKey;
         String priceId = isMonthly ? monthlyPriceId : yearlyPriceId;
 
@@ -87,8 +87,17 @@ public class StripeService {
         Subscription retrievedSubscription = Subscription.retrieve(subscription.getId(),
                 Map.of("expand", List.of("latest_invoice.payment_intent")), requestOptions);
 
-        // Get the PaymentIntent
+        // Get the PaymentIntent associated with the subscription
         String clientSecret = retrievedSubscription.getLatestInvoiceObject().getPaymentIntentObject().getClientSecret();
+
+        // **Create SetupIntent for saving payment method**
+        SetupIntentCreateParams setupIntentParams = SetupIntentCreateParams.builder()
+                .setCustomer(customerId) // Set customer ID
+                .setPaymentMethod(retrievedSubscription.getLatestInvoiceObject().getPaymentIntentObject().getPaymentMethod()) // Use the payment method from the payment intent
+                .build();
+
+        // Create the SetupIntent
+        SetupIntent setupIntent = SetupIntent.create(setupIntentParams);
 
         // Generate an ephemeral key for the customer
         EphemeralKeyCreateParams ephemeralKeyParams = EphemeralKeyCreateParams.builder()
@@ -100,7 +109,7 @@ public class StripeService {
         // Prepare response
         Map<String, String> responseData = new HashMap<>();
         responseData.put("subscriptionId", subscription.getId());
-        responseData.put("clientSecret", clientSecret);
+        responseData.put("clientSecret", setupIntent.getClientSecret());  // Use the SetupIntent client secret here
         responseData.put("ephemeralKey", ephemeralKey.getSecret());
 
         return responseData;

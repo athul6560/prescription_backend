@@ -1,8 +1,6 @@
 package com.zeezaglobal.prescription.Controller;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.PaymentMethod;
-import com.stripe.param.PaymentMethodAttachParams;
 import com.zeezaglobal.prescription.Service.StripeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +28,6 @@ public class StripeController {
 
     @PostMapping("/payment-intent")
     public Map<String, String> createPaymentIntent(@RequestBody Map<String, Object> payload) throws StripeException {
-        return stripeService.createPaymentIntent((String) payload.get("customerId"), (Boolean) payload.get("isMonthly"));
+        return stripeService.createSubscriptionIntent((String) payload.get("customerId"), (Boolean) payload.get("isMonthly"));
     }
 }
