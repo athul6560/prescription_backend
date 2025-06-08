@@ -40,7 +40,8 @@ public class DoctorController {
                 doctor.getSpecialization(),
                 doctor.getLicenseNumber(),
                 doctor.getHospitalName(),
-                doctor.getContactNumber());
+                doctor.getContactNumber(),
+                doctor.getStripeUsername());
     }
     @PostMapping("/update")
     public ResponseEntity<Doctor> updateDoctor(@RequestBody UpdateDoctorDTO updatedDoctor) {

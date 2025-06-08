@@ -35,7 +35,42 @@ public class StripeService {
         Customer customer = Customer.create(params);
         return customer.getId();
     }
+    public String createPaymentIntent(String customerId, boolean isMonthly) throws StripeException {
+        // Set the Stripe API key
+        Stripe.apiKey = stripeSecretKey;
 
+        // Choose the priceId based on the request (monthly or yearly)
+        String priceId = isMonthly ? monthlyPriceId : yearlyPriceId;
+
+        // Get the amount for the selected price ID (this assumes you have a method to get the amount based on priceId)
+        long amount = getPriceAmount(priceId);
+
+        // Create a PaymentIntent using the priceId
+        PaymentIntent paymentIntent = PaymentIntent.create(
+                PaymentIntentCreateParams.builder()
+                        .setCustomer(customerId)  // Set the customer ID
+                        .setAmount(amount)         // Set the amount (in cents)
+                        .setCurrency("inr")        // Set your currency here
+                        .setAutomaticPaymentMethods(
+                                PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                                        .setEnabled(true)  // Enable automatic payment methods
+                                        .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)  // Disable redirects
+                                        .build()
+                        )
+
+                        .build()
+        );
+
+        // Return the client secret of the PaymentIntent
+        return paymentIntent.getClientSecret();
+    }
+
+    // This method retrieves the price amount based on the priceId
+// You may need to replace this method with an actual implementation to retrieve price amounts.
+    private long getPriceAmount(String priceId) throws StripeException {
+        Price price = Price.retrieve(priceId);  // Retrieve the price object using the priceId
+        return price.getUnitAmount();           // Return the unit amount associated with the price
+    }
 
     public void attachPaymentMethod(Map<String, String> payload) throws StripeException {
         // Set the Stripe API key

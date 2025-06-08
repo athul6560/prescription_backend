@@ -21,6 +21,7 @@ public class DoctorDTO {
     private String licenseNumber;
     private String hospitalName;
     private String contactNumber;
+    private String stripeUsername;
 
 
 }
