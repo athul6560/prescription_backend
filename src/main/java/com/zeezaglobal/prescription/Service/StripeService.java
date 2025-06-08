@@ -5,17 +5,22 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
+import com.zeezaglobal.prescription.Entities.Doctor;
+import com.zeezaglobal.prescription.Repository.DoctorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Optional;
 
 
 @Service
 public class StripeService {
+    @Autowired
+    private DoctorRepository doctorRepository;
 
     @Value("${stripe.secret-key}")
     private String stripeSecretKey;
@@ -35,13 +40,20 @@ public class StripeService {
         Customer customer = Customer.create(params);
         return customer.getId();
     }
-    public String createPaymentIntent(String customerId, boolean isMonthly) throws StripeException {
+    public String createPaymentIntent(Long doctorId) throws StripeException {
         // Set the Stripe API key
         Stripe.apiKey = stripeSecretKey;
 
         // Choose the priceId based on the request (monthly or yearly)
-        String priceId = isMonthly ? monthlyPriceId : yearlyPriceId;
-
+        String priceId = yearlyPriceId;
+        Optional<Doctor> doctor = doctorRepository.findById(doctorId);
+        String customerId = null;
+        if (doctor.isPresent()) {
+            customerId = doctor.get().getStripeUsername();
+            // use customerId
+        } else {
+            // handle case where doctor is not found
+        }
         // Get the amount for the selected price ID (this assumes you have a method to get the amount based on priceId)
         long amount = getPriceAmount(priceId);
 
@@ -103,38 +115,5 @@ public class StripeService {
         return subscription.getId();
     }
 
-    public Map<String, String> createSubscriptionIntent(String customerId, boolean isMonthly) throws StripeException {
-        Stripe.apiKey = stripeSecretKey;
-        String priceId = isMonthly ? monthlyPriceId : yearlyPriceId;
 
-        // Create subscription
-        SubscriptionCreateParams params = SubscriptionCreateParams.builder()
-                .setCustomer(customerId)
-                .addItem(SubscriptionCreateParams.Item.builder().setPrice(priceId).build())
-                .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.ALLOW_INCOMPLETE)
-                .addExpand("latest_invoice.payment_intent")
-                .build();
-
-        // Create the subscription
-        Subscription subscription = Subscription.create(params);
-
-        // Get the PaymentIntent associated with the subscription
-        PaymentIntent paymentIntent = subscription.getLatestInvoiceObject().getPaymentIntentObject();
-        String paymentIntentClientSecret = paymentIntent.getClientSecret();
-
-        // Generate an ephemeral key for the customer
-        EphemeralKeyCreateParams ephemeralKeyParams = EphemeralKeyCreateParams.builder()
-                .setCustomer(customerId)
-                .setStripeVersion("2023-10-16") // Required for ephemeral keys
-                .build();
-        EphemeralKey ephemeralKey = EphemeralKey.create(ephemeralKeyParams);
-
-        // Prepare response
-        Map<String, String> responseData = new HashMap<>();
-        responseData.put("subscriptionId", subscription.getId());
-        responseData.put("clientSecret", paymentIntentClientSecret); // Use the PaymentIntent client secret
-        responseData.put("ephemeralKey", ephemeralKey.getSecret());
-
-        return responseData;
-    }
 }

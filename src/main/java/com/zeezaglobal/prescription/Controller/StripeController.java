@@ -22,33 +22,23 @@ public class StripeController {
 
     @Autowired
     private StripeService stripeService;
-/*    @PostMapping("/setup-intent")
-    public Map<String, String> createSetupIntent() throws StripeException {
-        SetupIntent setupIntent = SetupIntent.create(new SetupIntentCreateParams.Builder().build());
-        return Map.of("clientSecret", setupIntent.getClientSecret());
-    }*/
+
     @PostMapping("/attach-payment-method")
     public void attachPaymentMethod(@RequestBody Map<String, String> payload) throws StripeException {
         stripeService.attachPaymentMethod(payload);
     }
-    @PostMapping("/subscription")
-    public String createSubscription(@RequestBody Map<String, Object> payload) throws StripeException {
-        return stripeService.createSubscription((String) payload.get("customerId"), (Boolean) payload.get("isMonthly"));
-    }
 
-    @PostMapping("/payment-intent")
-    public Map<String, String> createPaymentIntent(@RequestBody Map<String, Object> payload) throws StripeException {
-        return stripeService.createSubscriptionIntent((String) payload.get("customerId"), (Boolean) payload.get("isMonthly"));
-    }
+
+
     @PostMapping("/setup-intent")
     public ResponseEntity<Map<String, String>> createSetupIntent(@RequestBody Map<String, String> request) {
         try {
             // Extract customerId and isMonthly from the request body
-            String customerId = request.get("customerId");
-            boolean isMonthly = Boolean.parseBoolean(request.get("isMonthly"));
+            String customerId = request.get("doctorId");
+
 
             // Call the service to create the payment intent
-            String clientSecret = stripeService.createPaymentIntent(customerId, isMonthly);
+            String clientSecret = stripeService.createPaymentIntent(Long.valueOf(customerId));
 
             // Create a response map with the client secret
             Map<String, String> response = new HashMap<>();
