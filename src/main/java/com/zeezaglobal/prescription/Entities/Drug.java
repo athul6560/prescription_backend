@@ -23,6 +23,7 @@ public class Drug {
     private String name;
     private String dose;
     private String frequency;
+    
     private String duration;
     private String remarks;
 
