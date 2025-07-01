@@ -71,6 +71,7 @@ public class DoctorController {
             doctor.setLicenseNumber(updatedDoctor.getLicenseNumber());
             doctor.setContactNumber(updatedDoctor.getContactNumber());
             doctor.setSpecialization(updatedDoctor.getSpecialization());
+            doctor.setValidated(0);
 
             Doctor savedDoctor = doctorRepository.save(doctor);
             logger.info("Doctor updated successfully with ID: {}", savedDoctor.getId());
