@@ -21,11 +21,12 @@ public class Drug {
     private int serialNumber;
     private String type;
     private String name;
-    private String dose;
-    private String frequency;
+    private String description;
+    private String type_name;
+    private String form;
+
     
-    private String duration;
-    private String remarks;
+
 
     @ManyToMany(mappedBy = "drugs")
     private List<Prescription> prescriptions;

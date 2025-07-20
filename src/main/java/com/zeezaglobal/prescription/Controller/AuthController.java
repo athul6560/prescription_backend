@@ -102,14 +102,22 @@ public class AuthController {
                     new UsernameNotFoundException("User not found"));
 
             // Prepare response with token and user details
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("id", loggedInUser.getId());
+            userMap.put("username", loggedInUser.getUsername());
+           // userMap.put("roles", loggedInUser.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
+
+            // Check if user is a Doctor and add validated field
+            if (loggedInUser instanceof Doctor) {
+                Doctor doctor = (Doctor) loggedInUser;
+                userMap.put("isValidated", doctor.getValidated());
+            } else {
+                userMap.put("isValidated", null); // or false if needed
+            }
+
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
-            response.put("user", Map.of(
-                    "id", loggedInUser.getId(),
-                    "username", loggedInUser.getUsername(),
-
-                    "roles", loggedInUser.getRoles().stream().map(Role::getName).collect(Collectors.toList())
-            ));
+            response.put("user", userMap);
 
             return ResponseEntity.ok(response);
 
