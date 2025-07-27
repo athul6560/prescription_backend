@@ -28,9 +28,13 @@ public class Prescription {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
+    @ManyToOne
+    @JoinColumn(name = "doctor_id", nullable = false)
+    private Doctor doctor;
+
     @ManyToMany
     @JoinTable(
-            name = "prescription_drugs",
+            name = "prescription_drug",
             joinColumns = @JoinColumn(name = "prescription_id"),
             inverseJoinColumns = @JoinColumn(name = "drug_id")
     )

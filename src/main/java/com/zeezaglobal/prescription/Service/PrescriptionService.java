@@ -13,49 +13,50 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class PrescriptionService {
 
-    @Autowired
-    private PrescriptionRepository prescriptionRepository;
+    private final PrescriptionRepository prescriptionRepository;
+    private final PatientRepository patientRepository;
+    private final DrugRepository drugRepository;
 
-    @Autowired
-    private PatientRepository patientRepository;
+    public PrescriptionService(PrescriptionRepository prescriptionRepository,
+                               PatientRepository patientRepository,
+                               DrugRepository drugRepository) {
+        this.prescriptionRepository = prescriptionRepository;
+        this.patientRepository = patientRepository;
+        this.drugRepository = drugRepository;
+    }
 
-    @Autowired
-    private DrugRepository drugRepository;
+    public PrescriptionDTO createPrescription(PrescriptionDTO dto) {
+        // Fetch patient
+        Patient patient = patientRepository.findById(dto.getPatientId())
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
 
-    @Transactional
-    public PrescriptionDTO createPrescription(Long patientId, List<Long> drugIds, String remarks) {
-        Optional<Patient> patientOpt = patientRepository.findById(patientId);
-        if (patientOpt.isEmpty()) {
-            throw new RuntimeException("Patient not found");
-        }
-
-        List<Drug> drugs = drugRepository.findAllById(drugIds);
+        // Fetch drugs
+        List<Drug> drugs = drugRepository.findAllById(dto.getDrugIds());
         if (drugs.isEmpty()) {
             throw new RuntimeException("No valid drugs found");
         }
 
+        // Create prescription
         Prescription prescription = new Prescription();
-        prescription.setPatient(patientOpt.get());
+        prescription.setPatient(patient);
         prescription.setDrugs(drugs);
-        prescription.setPrescribedDate(java.time.LocalDate.now());
-        prescription.setRemarks(remarks);
-        Prescription createdPrescription = prescriptionRepository.save(prescription);
+        prescription.setPrescribedDate(dto.getPrescribedDate() != null ? dto.getPrescribedDate() : java.time.LocalDate.now());
+        prescription.setRemarks(dto.getRemarks());
 
-        // Convert to DTO
-        return new PrescriptionDTO(
-                createdPrescription.getId(),
-                createdPrescription.getPrescribedDate(),
-                createdPrescription.getRemarks(),
-                createdPrescription.getPatient().getId()
+        // Set doctor from patient (if needed)
+        prescription.setDoctor(patient.getDoctor());
 
-        );
+        Prescription saved = prescriptionRepository.save(prescription);
 
+        // Return DTO
+        return mapToDTO(saved);
     }
-
 
     public List<Prescription> getAllPrescriptions() {
         return prescriptionRepository.findAll();
@@ -71,5 +72,17 @@ public class PrescriptionService {
 
     public void deletePrescription(Long id) {
         prescriptionRepository.deleteById(id);
+    }
+
+    // 🔧 Helper mapper method
+    private PrescriptionDTO mapToDTO(Prescription p) {
+        return new PrescriptionDTO(
+                p.getId(),
+                p.getPrescribedDate(),
+                p.getRemarks(),
+                p.getPatient().getId(),
+                p.getPatient().getDoctor().getId(),
+                p.getDrugs().stream().map(Drug::getId).collect(Collectors.toList())
+        );
     }
 }

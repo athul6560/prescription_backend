@@ -24,8 +24,11 @@ public class PrescriptionController {
         List<Integer> drugIdsInt = (List<Integer>) payload.get("drugIds");
         List<Long> drugIds = drugIdsInt.stream().map(Integer::longValue).toList();
         String remarks = (String) payload.get("remarks");
-
-        PrescriptionDTO prescription = prescriptionService.createPrescription(patientId, drugIds, remarks);
+        PrescriptionDTO prescriptionInput = new PrescriptionDTO();
+        prescriptionInput.setPatientId(patientId);
+        prescriptionInput.setDrugIds(drugIds);
+        prescriptionInput.setRemarks(remarks);
+        PrescriptionDTO prescription = prescriptionService.createPrescription(prescriptionInput);
         return ResponseEntity.ok(prescription);
     }
 

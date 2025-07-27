@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/api/drugs/**").permitAll()
+                        .requestMatchers("/api/prescriptions/**").permitAll()
                         .requestMatchers("/dashboard").authenticated()  // Secure /dashboard
                         .anyRequest().authenticated()
                 )

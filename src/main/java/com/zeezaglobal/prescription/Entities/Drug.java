@@ -25,9 +25,9 @@ public class Drug {
     private String type_name;
     private String form;
 
-    
 
 
     @ManyToMany(mappedBy = "drugs")
     private List<Prescription> prescriptions;
+
 }

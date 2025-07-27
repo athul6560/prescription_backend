@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,11 +16,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class PrescriptionDTO {
     private Long id;
-
     private LocalDate prescribedDate;
     private String remarks;
-
-
-    private Long patient_id;
-
+    private Long patientId;
+    private Long doctorId;
+    private List<Long> drugIds;
 }
