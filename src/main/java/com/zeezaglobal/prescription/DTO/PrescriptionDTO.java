@@ -2,16 +2,12 @@ package com.zeezaglobal.prescription.DTO;
 
 import com.zeezaglobal.prescription.Entities.Patient;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class PrescriptionDTO {
@@ -20,5 +16,8 @@ public class PrescriptionDTO {
     private String remarks;
     private Long patientId;
     private Long doctorId;
+    private List<DrugDTO> drugs;
     private List<Long> drugIds;
+
+
 }
