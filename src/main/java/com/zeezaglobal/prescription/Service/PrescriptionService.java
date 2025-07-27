@@ -4,6 +4,7 @@ import com.zeezaglobal.prescription.DTO.PrescriptionDTO;
 import com.zeezaglobal.prescription.Entities.Drug;
 import com.zeezaglobal.prescription.Entities.Patient;
 import com.zeezaglobal.prescription.Entities.Prescription;
+import com.zeezaglobal.prescription.Mappers.PrescriptionMapper;
 import com.zeezaglobal.prescription.Repository.DrugRepository;
 import com.zeezaglobal.prescription.Repository.PatientRepository;
 import com.zeezaglobal.prescription.Repository.PrescriptionRepository;
@@ -49,13 +50,12 @@ public class PrescriptionService {
         prescription.setPrescribedDate(dto.getPrescribedDate() != null ? dto.getPrescribedDate() : java.time.LocalDate.now());
         prescription.setRemarks(dto.getRemarks());
 
-        // Set doctor from patient (if needed)
+        // Set doctor from patient
         prescription.setDoctor(patient.getDoctor());
 
+        // Save and return DTO using the updated mapper
         Prescription saved = prescriptionRepository.save(prescription);
-
-        // Return DTO
-        return mapToDTO(saved);
+        return PrescriptionMapper.toDTO(saved);
     }
 
     public List<Prescription> getAllPrescriptions() {
@@ -74,15 +74,5 @@ public class PrescriptionService {
         prescriptionRepository.deleteById(id);
     }
 
-    // 🔧 Helper mapper method
-    private PrescriptionDTO mapToDTO(Prescription p) {
-        return new PrescriptionDTO(
-                p.getId(),
-                p.getPrescribedDate(),
-                p.getRemarks(),
-                p.getPatient().getId(),
-                p.getPatient().getDoctor().getId(),
-                p.getDrugs().stream().map(Drug::getId).collect(Collectors.toList())
-        );
-    }
+
 }

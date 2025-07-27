@@ -2,6 +2,7 @@ package com.zeezaglobal.prescription.Controller;
 
 import com.zeezaglobal.prescription.DTO.PrescriptionDTO;
 import com.zeezaglobal.prescription.Entities.Prescription;
+import com.zeezaglobal.prescription.Mappers.PrescriptionMapper;
 import com.zeezaglobal.prescription.Service.PrescriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/prescriptions")
@@ -43,8 +45,12 @@ public class PrescriptionController {
     }
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<Prescription>> getPrescriptionsByPatient(@PathVariable Long patientId) {
-        return ResponseEntity.ok(prescriptionService.getPrescriptionsByPatientId(patientId));
+    public ResponseEntity<List<PrescriptionDTO>> getPrescriptionsByPatient(@PathVariable Long patientId) {
+        List<Prescription> prescriptions = prescriptionService.getPrescriptionsByPatientId(patientId);
+        List<PrescriptionDTO> prescriptionDTOs = prescriptions.stream()
+                .map(PrescriptionMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(prescriptionDTOs);
     }
 
     @DeleteMapping("/{id}")
