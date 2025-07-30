@@ -27,7 +27,7 @@ public class Drug {
 
 
 
-    @ManyToMany(mappedBy = "drugs")
-    private List<Prescription> prescriptions;
+    @OneToMany(mappedBy = "drug", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PrescribedDrug> prescribedDrugs;
 
 }

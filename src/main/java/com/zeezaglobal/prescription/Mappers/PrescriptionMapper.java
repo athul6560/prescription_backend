@@ -1,8 +1,7 @@
 package com.zeezaglobal.prescription.Mappers;
 
-import com.zeezaglobal.prescription.DTO.DrugDTO;
-import com.zeezaglobal.prescription.DTO.PrescriptionDTO;
-import com.zeezaglobal.prescription.Entities.Drug;
+import com.zeezaglobal.prescription.DTO.PrescriptionResponseDTO;
+import com.zeezaglobal.prescription.Entities.PrescribedDrug;
 import com.zeezaglobal.prescription.Entities.Prescription;
 
 import java.util.List;
@@ -10,29 +9,37 @@ import java.util.stream.Collectors;
 
 public class PrescriptionMapper {
 
-    public static PrescriptionDTO toDTO(Prescription prescription) {
-        List<Drug> drugs = prescription.getDrugs();
+    public static PrescriptionResponseDTO toDTO(Prescription prescription) {
+        PrescriptionResponseDTO dto = new PrescriptionResponseDTO();
+        dto.setId(prescription.getId());
+        dto.setPrescribedDate(prescription.getPrescribedDate());
+        dto.setRemarks(prescription.getRemarks());
+        dto.setDoctorName(prescription.getDoctor().getFirstName());
+        dto.setPatientName(prescription.getPatient().getFirstName());
 
-        return new PrescriptionDTO(
-                prescription.getId(),
-                prescription.getPrescribedDate(),
-                prescription.getRemarks(),
-                prescription.getPatient().getId(),
-                prescription.getDoctor().getId(),
-                drugs.stream().map(PrescriptionMapper::toDrugDTO).collect(Collectors.toList()),
-                drugs.stream().map(Drug::getId).collect(Collectors.toList()) // drugIds
-        );
+        List<PrescriptionResponseDTO.PrescribedDrugDTO> drugDTOs = prescription.getPrescribedDrugs()
+                .stream()
+                .map(PrescriptionMapper::mapPrescribedDrug)
+                .collect(Collectors.toList());
+
+        dto.setPrescribedDrugs(drugDTOs);
+
+        return dto;
     }
 
-    private static DrugDTO toDrugDTO(Drug drug) {
-        return new DrugDTO(
-                drug.getId(),
-                drug.getSerialNumber(),
-                drug.getType(),
-                drug.getName(),
-                drug.getDescription(),
-                drug.getType_name(),
-                drug.getForm()
-        );
+    private static PrescriptionResponseDTO.PrescribedDrugDTO mapPrescribedDrug(PrescribedDrug pd) {
+        PrescriptionResponseDTO.PrescribedDrugDTO dto = new PrescriptionResponseDTO.PrescribedDrugDTO();
+        dto.setDrugName(pd.getDrug().getName());
+        dto.setForm(pd.getDrug().getForm());
+        dto.setDosage(pd.getDosage());
+        dto.setWeight(pd.getWeight());
+        dto.setFrequencyPerDay(pd.getFrequencyPerDay());
+        dto.setDurationDays(pd.getDurationDays());
+        dto.setInstructions(pd.getInstructions());
+        return dto;
+    }
+
+    public static List<PrescriptionResponseDTO> toDTOList(List<Prescription> prescriptions) {
+        return prescriptions.stream().map(PrescriptionMapper::toDTO).collect(Collectors.toList());
     }
 }

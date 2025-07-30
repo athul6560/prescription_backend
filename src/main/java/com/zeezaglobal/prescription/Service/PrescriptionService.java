@@ -1,10 +1,10 @@
 package com.zeezaglobal.prescription.Service;
 
-import com.zeezaglobal.prescription.DTO.PrescriptionDTO;
-import com.zeezaglobal.prescription.Entities.Drug;
-import com.zeezaglobal.prescription.Entities.Patient;
-import com.zeezaglobal.prescription.Entities.Prescription;
+import com.zeezaglobal.prescription.DTO.PrescriptionRequestDTO;
+import com.zeezaglobal.prescription.DTO.PrescriptionResponseDTO;
+import com.zeezaglobal.prescription.Entities.*;
 import com.zeezaglobal.prescription.Mappers.PrescriptionMapper;
+import com.zeezaglobal.prescription.Repository.DoctorRepository;
 import com.zeezaglobal.prescription.Repository.DrugRepository;
 import com.zeezaglobal.prescription.Repository.PatientRepository;
 import com.zeezaglobal.prescription.Repository.PrescriptionRepository;
@@ -14,64 +14,64 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class PrescriptionService {
 
-    private final PrescriptionRepository prescriptionRepository;
-    private final PatientRepository patientRepository;
-    private final DrugRepository drugRepository;
+    @Autowired
+    private PrescriptionRepository prescriptionRepository;
 
-    public PrescriptionService(PrescriptionRepository prescriptionRepository,
-                               PatientRepository patientRepository,
-                               DrugRepository drugRepository) {
-        this.prescriptionRepository = prescriptionRepository;
-        this.patientRepository = patientRepository;
-        this.drugRepository = drugRepository;
+    @Autowired
+    private PatientRepository patientRepository;
+
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private DrugRepository drugRepository;
+
+    public List<PrescriptionResponseDTO> getPrescriptionsByDoctorAndPatient(Long doctorId, Long patientId) {
+        List<Prescription> prescriptions = prescriptionRepository.findByDoctorIdAndPatientId(doctorId, patientId);
+        return PrescriptionMapper.toDTOList(prescriptions);
     }
 
-    public PrescriptionDTO createPrescription(PrescriptionDTO dto) {
-        // Fetch patient
+    public PrescriptionResponseDTO createPrescription(PrescriptionRequestDTO dto) {
+        // Fetch patient and doctor (assuming they exist)
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
-        // Fetch drugs
-        List<Drug> drugs = drugRepository.findAllById(dto.getDrugIds());
-        if (drugs.isEmpty()) {
-            throw new RuntimeException("No valid drugs found");
-        }
+        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
-        // Create prescription
+        // Create prescription entity
         Prescription prescription = new Prescription();
-        prescription.setPatient(patient);
-        prescription.setDrugs(drugs);
-        prescription.setPrescribedDate(dto.getPrescribedDate() != null ? dto.getPrescribedDate() : java.time.LocalDate.now());
+        prescription.setPrescribedDate(dto.getPrescribedDate());
         prescription.setRemarks(dto.getRemarks());
+        prescription.setDoctor(doctor);
+        prescription.setPatient(patient);
 
-        // Set doctor from patient
-        prescription.setDoctor(patient.getDoctor());
+        // Convert and set prescribedDrugs
+        List<PrescribedDrug> prescribedDrugs = dto.getPrescribedDrugs().stream().map(drugDTO -> {
+            Drug drug = drugRepository.findById(drugDTO.getDrugId())
+                    .orElseThrow(() -> new RuntimeException("Drug not found: " + drugDTO.getDrugId()));
 
-        // Save and return DTO using the updated mapper
-        Prescription saved = prescriptionRepository.save(prescription);
-        return PrescriptionMapper.toDTO(saved);
-    }
+            PrescribedDrug pd = new PrescribedDrug();
+            pd.setDrug(drug);
+            pd.setPrescription(prescription);
+            pd.setWeight(drugDTO.getWeight());
+            pd.setDosage(drugDTO.getDosage());
+            pd.setFrequencyPerDay(drugDTO.getFrequencyPerDay());
+            pd.setDurationDays(drugDTO.getDurationDays());
+            pd.setInstructions(drugDTO.getInstructions());
 
-    public List<Prescription> getAllPrescriptions() {
-        return prescriptionRepository.findAll();
-    }
+            return pd;
+        }).toList();
 
-    public Optional<Prescription> getPrescriptionById(Long id) {
-        return prescriptionRepository.findById(id);
-    }
+        prescription.setPrescribedDrugs(prescribedDrugs);
 
-    public List<Prescription> getPrescriptionsByPatientId(Long patientId) {
-        return prescriptionRepository.findByPatientId(patientId);
-    }
-
-    public void deletePrescription(Long id) {
-        prescriptionRepository.deleteById(id);
+        Prescription savedPrescription = prescriptionRepository.save(prescription);
+        return PrescriptionMapper.toDTO(savedPrescription);
     }
 
 

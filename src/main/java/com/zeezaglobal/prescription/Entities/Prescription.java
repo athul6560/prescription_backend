@@ -32,11 +32,6 @@ public class Prescription {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
-    @ManyToMany
-    @JoinTable(
-            name = "prescription_drug",
-            joinColumns = @JoinColumn(name = "prescription_id"),
-            inverseJoinColumns = @JoinColumn(name = "drug_id")
-    )
-    private List<Drug> drugs;
+    @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PrescribedDrug> prescribedDrugs;
 }
